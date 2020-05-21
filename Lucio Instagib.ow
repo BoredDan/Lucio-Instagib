@@ -61,11 +61,11 @@ variables
 {
 	global:
 		0: ShotDelay
-		1: FreindlyFire
-		2: FriendlyRailImpulse
-		3: MaxShotDistance
-		4: ShotEffectDuration
-		5: RailImpulse
+		1: MaxShotDistance
+		2: ShotEffectDuration
+		3: FreindlyFire
+		4: RailImpulse
+		5: FriendlyRailImpulse
 
 	player:
 		0: ShotDelay
