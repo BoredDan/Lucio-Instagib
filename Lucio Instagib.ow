@@ -69,11 +69,10 @@ variables
 
 	player:
 		0: ShotDelay
-		1: LastShotTime
-		2: ShotEffects
-		3: ShotHitLocation
-		4: ShotHitPlayer
-		5: ShotEndPoint
+		1: ShotEffects
+		2: ShotHitLocation
+		3: ShotHitPlayer
+		4: ShotEndPoint
 }
 
 subroutines
@@ -127,7 +126,6 @@ rule("Player Setup")
 	actions
 	{
 		Event Player.ShotDelay = 0;
-		Event Player.LastShotTime = 0;
 		Event Player.ShotEffects = Empty Array;
 	}
 }
