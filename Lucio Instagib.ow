@@ -171,6 +171,21 @@ rule("Enforce Invincible Player")
 	}
 }
 
+rule("Player Died")
+{
+	event
+	{
+		Player Died;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.ShotDelay = 0;
+	}
+}
+
 rule("Fire")
 {
 	event
@@ -184,6 +199,7 @@ rule("Fire")
 	{
 		Is Button Held(Event Player, Primary Fire) == True;
 		Event Player.ShotDelay == 0;
+		Is Alive(Event Player) == True;
 	}
 
 	actions
