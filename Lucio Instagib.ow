@@ -1,0 +1,297 @@
+settings
+{
+	main
+	{
+		Description: "Lucio Instagib\n\nShare Code: 0S0AJ\nCreator(s): Bored\nDiscord: https://discord.gg/vGHxxcv \n\nWhat is instagib? Instagib is an old game mode from the days of Quake and Unreal Tournament where every player has a one hit kill railgun. It's fast, it's fun, and it's insanely hard."
+	}
+
+	lobby
+	{
+		Allow Players Who Are In Queue: Yes
+		Max Spectators: 12
+	}
+
+	modes
+	{
+		Capture the Flag
+
+		Control
+
+		Deathmatch
+
+		Elimination
+
+		Team Deathmatch
+
+		General
+		{
+			Allow Hero Switching: Off
+			Enemy Health Bars: Off
+			Hero Limit: Off
+			Respawn As Random Hero: On
+			Spawn Health Packs: Disabled
+		}
+	}
+
+	heroes
+	{
+		General
+		{
+			Damage Dealt: 10%
+			Damage Received: 10%
+			Health: 10%
+			No Ammunition Requirement: On
+			Primary Fire: Off
+			Ultimate Ability: Off
+
+			Lúcio
+			{
+				Crossfade: Off
+			}
+
+			enabled heroes
+			{
+				Lúcio
+			}
+		}
+	}
+}
+
+variables
+{
+	global:
+		0: ShotDelay
+		1: FreindlyFire
+		2: FriendlyRailImpulse
+		3: MaxShotDistance
+		4: ShotEffectDuration
+		5: RailImpulse
+
+	player:
+		0: ShotDelay
+		1: LastShotTime
+		2: ShotEffects
+		3: ShotHitLocation
+		4: ShotHitPlayer
+		5: ShotEndPoint
+}
+
+subroutines
+{
+	0: Shoot
+	1: ClearShotEffects
+	2: HandlePlayerHit
+	3: CreateShotEffect
+	4: DeferredClearShotEffects
+}
+
+rule("Settings (EDIT HERE)")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.ShotDelay = 1;
+		Global.FreindlyFire = 0;
+		Global.RailImpulse = 1000;
+		Global.FriendlyRailImpulse = 1;
+	}
+}
+
+rule("Global Setup")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	actions
+	{
+		Global.MaxShotDistance = 1000;
+		Global.ShotEffectDuration = 0.175;
+	}
+}
+
+rule("Player Setup")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Event Player.ShotDelay = 0;
+		Event Player.LastShotTime = 0;
+		Event Player.ShotEffects = Empty Array;
+	}
+}
+
+rule("Skip Aseembling Heroes")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Is Assembling Heroes == True;
+	}
+
+	actions
+	{
+		Set Match Time(0);
+	}
+}
+
+rule("Heal Non Lethal Damage")
+{
+	event
+	{
+		Player Took Damage;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Alive(Event Player) == True;
+	}
+
+	actions
+	{
+		Heal(Event Player, Null, Event Damage);
+	}
+}
+
+rule("Fire")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Primary Fire) == True;
+		Event Player.ShotDelay == 0;
+	}
+
+	actions
+	{
+		Call Subroutine(Shoot);
+	}
+}
+
+rule("Shoot (Subroutine)")
+{
+	event
+	{
+		Subroutine;
+		Shoot;
+	}
+
+	actions
+	{
+		Event Player.ShotDelay = Global.ShotDelay;
+		Chase Player Variable At Rate(Event Player, ShotDelay, 0, 1, Destination and Rate);
+		Event Player.ShotEndPoint = Eye Position(Event Player) + Global.MaxShotDistance * Facing Direction Of(Event Player);
+		Event Player.ShotHitLocation = Ray Cast Hit Position(Eye Position(Event Player), Event Player.ShotEndPoint, All Players(All Teams),
+			Event Player, True);
+		Event Player.ShotHitPlayer = Ray Cast Hit Player(Eye Position(Event Player), Event Player.ShotEndPoint, All Players(All Teams),
+			Event Player, True);
+		Call Subroutine(ClearShotEffects);
+		Call Subroutine(HandlePlayerHit);
+		Call Subroutine(CreateShotEffect);
+	}
+}
+
+rule("Handle Player Hit (Subroutine)")
+{
+	event
+	{
+		Subroutine;
+		HandlePlayerHit;
+	}
+
+	actions
+	{
+		If(Event Player.ShotHitPlayer);
+			If(Team Of(Event Player) == All Teams || Team Of(Event Player) != Team Of(Event Player.ShotHitPlayer));
+				Kill(Event Player.ShotHitPlayer, Event Player);
+				Apply Impulse(Event Player.ShotHitPlayer, Facing Direction Of(Event Player), Global.RailImpulse, To World,
+					Incorporate Contrary Motion);
+			Else;
+				Apply Impulse(Event Player.ShotHitPlayer, Facing Direction Of(Event Player), Global.RailImpulse * Global.FriendlyRailImpulse,
+					To World, Incorporate Contrary Motion);
+			End;
+		End;
+	}
+}
+
+rule("Create Shot Effect (Subroutine)")
+{
+	event
+	{
+		Subroutine;
+		CreateShotEffect;
+	}
+
+	actions
+	{
+		If(Team Of(Event Player) == Team 1);
+			Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player), Event Player.ShotHitLocation, Team 1, None);
+			Modify Player Variable(Event Player, ShotEffects, Append To Array, Last Created Entity);
+		Else If(Team Of(Event Player) == Team 2);
+			Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player), Event Player.ShotHitLocation, Team 2, None);
+			Modify Player Variable(Event Player, ShotEffects, Append To Array, Last Created Entity);
+		Else;
+			Create Beam Effect(Remove From Array(All Players(All Teams), Event Player), Bad Beam, Eye Position(Event Player),
+				Event Player.ShotHitLocation, Red, None);
+			Modify Player Variable(Event Player, ShotEffects, Append To Array, Last Created Entity);
+			Create Beam Effect(Event Player, Bad Beam, Eye Position(Event Player), Event Player.ShotHitLocation, Blue, None);
+			Modify Player Variable(Event Player, ShotEffects, Append To Array, Last Created Entity);
+		End;
+		Start Rule(DeferredClearShotEffects, Restart Rule);
+	}
+}
+
+rule("Clear Shot Effects (Subroutine)")
+{
+	event
+	{
+		Subroutine;
+		ClearShotEffects;
+	}
+
+	actions
+	{
+		For Global Variable(I, 0, Count Of(Event Player.ShotEffects), 1);
+			Destroy Effect(Event Player.ShotEffects[Global.I]);
+		End;
+		Event Player.ShotEffects = Empty Array;
+	}
+}
+
+rule("Deferred Clear Shot Effects (Subroutine)")
+{
+	event
+	{
+		Subroutine;
+		DeferredClearShotEffects;
+	}
+
+	actions
+	{
+		Wait(Global.ShotEffectDuration, Ignore Condition);
+		Call Subroutine(ClearShotEffects);
+	}
+}
