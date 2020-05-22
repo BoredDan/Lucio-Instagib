@@ -93,6 +93,7 @@ variables
 		2: ShotHitLocation
 		3: ShotHitPlayer
 		4: ShotEndPoint
+		5: AdOn
 }
 
 subroutines
@@ -147,6 +148,44 @@ rule("Player Setup")
 	{
 		Event Player.ShotDelay = 0;
 		Event Player.ShotEffects = Empty Array;
+		Event Player.AdOn = True;
+	}
+}
+
+rule("Ad HUD")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	actions
+	{
+		Create HUD Text(Event Player.AdOn ? Event Player : Null, Custom String("Share: 0S0AJ"), Custom String(
+			"Version 0.1.0\nCreated by Bored\nhttps://discord.gg/UCQTE2R\nPress {0} to toggle info", Button(Interact)), Null, Left, 0,
+			White, White, White, Visible To, Default Visibility);
+	}
+}
+
+rule("Toggle Ad HUD")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Event Player.AdOn = !Event Player.AdOn;
 	}
 }
 
