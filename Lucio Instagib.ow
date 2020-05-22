@@ -270,6 +270,7 @@ rule("Create Shot Effect (Subroutine)")
 
 	actions
 	{
+		Play Effect(All Players(All Teams), Explosion Sound, White, Eye Position(Event Player), 200);
 		If(Team Of(Event Player) == Team 1);
 			Create Beam Effect(All Players(All Teams), Bad Beam, Eye Position(Event Player), Event Player.ShotHitLocation, Team 1, None);
 			Modify Player Variable(Event Player, ShotEffects, Append To Array, Last Created Entity);
