@@ -19,6 +19,7 @@ settings
 			Flag Dropped Lock Time: 0.0
 			Flag Return Time: 0.0
 			Flag Score Respawn Time: 0.0
+			Respawn Speed Buff Duration: 5.0
 			Score To Win: 5
 			Team Needs Flag At Base To Score: On
 		}
@@ -26,10 +27,21 @@ settings
 		Control
 
 		Deathmatch
+		{
+			Score To Win: 50
+		}
 
 		Elimination
+		{
+			Reveal Heroes: On
+			Reveal Heroes After Match Time Elapsed: 0
+			Score To Win: 5
+		}
 
 		Team Deathmatch
+		{
+			Score To Win: 100
+		}
 
 		General
 		{
