@@ -7,7 +7,6 @@ settings
 
 	lobby
 	{
-		Allow Players Who Are In Queue: Yes
 		Max Spectators: 12
 	}
 
