@@ -37,6 +37,7 @@ settings
 			Enemy Health Bars: Off
 			Hero Limit: Off
 			Respawn As Random Hero: On
+			Respawn Time Scalar: 25%
 			Spawn Health Packs: Disabled
 		}
 	}
